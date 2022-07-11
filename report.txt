@@ -1,0 +1,17 @@
+09_12_2019.xls                 File      
+1234                           Folder    
+alfa                           Folder    
+fake_project.zip               File      
+fghg                           Folder    
+hjkjkjj                        Folder    
+python-book-3.pdf              File      
+Semen_and_Lilia.mov            File      
+test.txt                       File      
+videoplayback (online-audio-converter.com).mp3 File      
+ZU_2711.doc                    File      
+Гольф СТО.docx                 File      
+ЖЦ.jpeg                        File      
+Комбінаторика.jpg              File      
+Нова папка                     Folder    
+Сведение_Семен_Лиля.wav        File      
+тези 2020_Швець.bmp            File      
