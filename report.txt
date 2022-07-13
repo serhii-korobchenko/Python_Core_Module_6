@@ -8,8 +8,6 @@
        Керівництво Alpha Now_Eng.docx File      
        Керівництво Alpha Now_рус.docx File      
     fake_project.zip               File      
-    hjkjkjj                        Folder    
-       4565                           Folder    
     python-book-3.pdf              File      
     Review_Module 4_5_Serhii.pptx  File      
     Semen_and_Lilia.mov            File      
@@ -19,7 +17,6 @@
     Гольф СТО.docx                 File      
     ЖЦ.jpeg                        File      
     Комбінаторика.jpg              File      
-    Нова папка                     Folder    
     Сведение_Семен_Лиля.wav        File      
     тези 2020_Швець.bmp            File      
 
