@@ -26,9 +26,7 @@ done by script - 2. Create folders: images, documents, audio, video, archives
 import os
 from pathlib import Path
 
-
-
-### Set up main folder path
+### Set up target folder path
 parent_dir = "D:\TEST\Garbage"
 p = Path (parent_dir)
 
@@ -43,7 +41,6 @@ set_files_other = set()
 set_met_extension = set()
 set_unfam_extension = set()
 
-
 ### Create defined folders
 
 list_folders_create = ['images', 'documents', 'audio', 'video', 'archives', 'other']
@@ -53,32 +50,66 @@ list_folders_create = ['images', 'documents', 'audio', 'video', 'archives', 'oth
     os.mkdir(path)
     print("Directory '% s' created" % item) """
 
+print(f'Target folder is: {p}.')
 
-print(f'Main folder is: {p}.')
-### Create and open report txt file
-
-report = open('report.txt', 'w')
-
-# report.write(i.name + '\n')  --> final record from Sets
-
-
-
-
-def search_function (path):   
+def search_function (path, k_space):   
     """ Function scan intendent folder at all levels of nestiness and find files and 
     folders with defined extensions.
 
     First parametr (path) - reveal carrent processing folder """
 
-    for i in path.iterdir():
-        on_print = '{:<30} {:<10}'.format(i.name, 'Folder' if i.is_dir() else 'File')
-        print(on_print)
-        report.write(on_print+ '\n')
-        if i.is_dir():
-            path_in = os.path.join(path, i)
-            #search_function (path_in) # recursive case
-       
-search_function (p)
+    k_space += 1
+    
+    space = " " * 3 * k_space
+    
+    if len(os.listdir(path)) == 0: # base case
+        # Delete empty folders
+        Path.rmdir(path)
+        return 
+    else:
+        for i in path.iterdir():
+            
+            on_print = '{:<0} {:<30} {:<10}'.format(space, i.name, 'Folder' if i.is_dir() else 'File')
+            print(on_print)
+            report.write(on_print+ '\n')
+            if i.is_dir():
+                # all our activities with folders
+                # Rename  by normalize function
+                
 
-### Close report txt file
-report.close()
+                
+
+
+                path = Path.joinpath(path, i)
+                search_function (path, k_space) # recursive case
+            else:
+                continue
+                # all our activities with files + archives
+
+    k_space -= 1
+    return k_space, set_files_images, set_files_documents, set_files_audio, set_files_video, set_files_archives, set_files_other
+
+def namestr(obj, namespace):
+    return [name for name in namespace if namespace[name] is obj]
+
+
+def set_prep_for_write (set_x):
+    with open('report.txt', 'a') as report:
+        
+        report.write(f'{namestr(set_x, globals())}: \n') 
+        for item in set_x:
+           report.write(str(item) + '\n') 
+    return namestr(set_x, globals())
+
+
+with open('report.txt', 'w') as report:
+    search_function (p, 0)
+    report.write('\n\n\n')
+
+
+print(set_prep_for_write (set_files_images))
+
+    
+
+    
+
