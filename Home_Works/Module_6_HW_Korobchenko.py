@@ -32,10 +32,7 @@ import re
 import shutil
 import sys
 
-
-
 #SET_UPS######################################################3
-
 
 ### Set up data containers
 set_files_images = set()
@@ -45,7 +42,6 @@ set_files_video = set()
 set_files_archives = set()
 set_fam_extension = set()
 set_unfam_extension = set()
-
 
 ### Set_up for normilize function
 CYRILLIC_SYMBOLS = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ"
@@ -58,9 +54,6 @@ TRANS = {}
 for c, l in zip(CYRILLIC_SYMBOLS, TRANSLATION):
     TRANS[ord(c)] = l
     TRANS[ord(c.upper())] = l.upper()
-
-
-
 
 #DEF#################################################
 
@@ -88,7 +81,6 @@ def search_function (path, k_space):
             if i.is_dir() and i != 'images' and i != 'documents' and i != 'audio' and i != 'video' and i != 'archives' :
                 ### All our activities with folders
 
-
                 path = Path.joinpath(path, i)
                 search_function (path, k_space) # recursive case
                 
@@ -100,15 +92,11 @@ def search_function (path, k_space):
                     #rename_folder ----> path = i
                     rename_func (i)
 
-
             else:
                 ### All our activities with files + archives
                 #rename_files ----> path = i
                 i = rename_func (i)
-                
-                
-                
-                
+                                               
                 ### Files GRID
                 
                 # images
@@ -143,7 +131,6 @@ def search_function (path, k_space):
                     
                     process_documents (i)
                 
-
                 # audio
                 elif i.suffix == '.mp3' or i.suffix == '.ogg' or i.suffix == '.wav' or i.suffix == '.amr':
                     
@@ -168,9 +155,7 @@ def search_function (path, k_space):
                 else:
                     set_unfam_extension.add(i.suffix)
 
-                continue
-               
-                
+                continue                              
 
     k_space -= 1
     
@@ -180,7 +165,6 @@ def namestr(obj, namespace):
     """ Function return name of veriable in string"""
     
     return [name for name in namespace if namespace[name] is obj]
-
 
 def set_prep_for_write (set_x):
     """ Function write list of categories in report file"""
@@ -193,15 +177,12 @@ def set_prep_for_write (set_x):
         report.write('\n\n')
     return namestr(set_x, globals())
 
-
-
 def normalize (name):
     """ Function normalize names files and folders"""
     
     p = name.translate(TRANS)
     result = re.sub(r'[^a-zA-Z0-9\.]', '_', p)
     return result
-
 
 def rename_func (path):
 
@@ -213,7 +194,6 @@ def rename_func (path):
 
     if new_name != old_name:
         os.rename(path_file_item, new_name_path, src_dir_fd=None, dst_dir_fd=None)
-
     
     path = new_name_path
     return path
@@ -224,8 +204,6 @@ def process_pictures (path):
     #print ('In Path >>>>', path)
     # Make dir if it does not exist yet
     path_base = Path.joinpath(p, 'images')
-
-    
 
     isExist = os.path.exists(path_base) # Check whether the specified path exists or not
 
@@ -239,17 +217,13 @@ def process_pictures (path):
     #print ('Dest path>>>>', dest_pass)
     
     shutil.move(path, dest_pass)
-    
-    
-
+        
 def process_video (path):
     """ Function process video category"""
-    
-    
+        
     # Make dir if it does not exist yet
     path_base = Path.joinpath(p, 'video')
     
-
     isExist = os.path.exists(path_base) # Check whether the specified path exists or not
 
     if not isExist:
@@ -269,7 +243,6 @@ def process_documents (path):
     # Make dir if it does not exist yet
     path_base = Path.joinpath(p, 'documents')
     
-
     isExist = os.path.exists(path_base) # Check whether the specified path exists or not
 
     if not isExist:
@@ -289,7 +262,6 @@ def process_audio (path):
     # Make dir if it does not exist yet
     path_base = Path.joinpath(p, 'audio')
     
-
     isExist = os.path.exists(path_base) # Check whether the specified path exists or not
 
     if not isExist:
@@ -324,14 +296,9 @@ def process_archives (path):
     shutil.unpack_archive(dest_pass, path_base)
     os.remove(dest_pass)
 
-
 #MAIN_BODY########################################
 print('LOG:')
 #print(f'Target folder is: {p}.')
-
-
-
-
 
 with open('report.txt', 'w') as report:
     if __name__ == '__main__':
@@ -343,13 +310,6 @@ with open('report.txt', 'w') as report:
             search_function (p, 0)
             report.write('\n\n\n')
 
-
-
-""" with open('report.txt', 'w') as report:
-    report.write('File structure processing:' + '\n\n')
-    search_function (p, 0)
-    report.write('\n\n\n') """
-
 print (f'You could read report file (report.txt) in your current directory')
 set_prep_for_write (set_files_images)
 set_prep_for_write (set_files_documents)
@@ -358,9 +318,6 @@ set_prep_for_write (set_files_video)
 set_prep_for_write (set_files_archives)
 set_prep_for_write (set_fam_extension)
 set_prep_for_write (set_unfam_extension)
-
-
-
 
 # python Module_6_HW_Korobchenko.py D:\TEST\Garbage
     
