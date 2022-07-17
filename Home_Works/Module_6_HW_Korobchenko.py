@@ -9,7 +9,7 @@ done by script - 2. Create folders: images, documents, audio, video, archives
                 - documents ('DOC', 'DOCX', 'TXT', 'PDF', 'XLSX', 'PPTX')
                 - music     ('MP3', 'OGG', 'WAV', 'AMR')
                 - archives  ('ZIP', 'GZ', 'TAR')
-                - others    
+                 
 
     Expected results:
                 - list of files in each CATEGORIES
@@ -23,19 +23,19 @@ done by script - 2. Create folders: images, documents, audio, video, archives
 8. Delete all empty folders
 9. Ignore folders: archives, video, audio, documents, images
 10. All found archives unpack in the same name folder in archives folder
-11. Do not rename files with unfamiliar extensons, but move them in Others folder.  """
+11. Do not remove files with unfamiliar extensons, but rename them """
 
+from dataclasses import replace
 import os
 from pathlib import Path
 import re
+import shutil
+import sys
 
 
 
 #SET_UPS######################################################3
 
-### Set up target folder path
-parent_dir = "D:\TEST\Garbage"
-p = Path (parent_dir)
 
 ### Set up data containers
 set_files_images = set()
@@ -43,12 +43,9 @@ set_files_documents = set()
 set_files_audio = set()
 set_files_video = set()
 set_files_archives = set()
-set_files_other = set()
-set_met_extension = set()
+set_fam_extension = set()
 set_unfam_extension = set()
 
-### Create defined folders
-list_folders_create = ['images', 'documents', 'audio', 'video', 'archives', 'other']
 
 ### Set_up for normilize function
 CYRILLIC_SYMBOLS = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ"
@@ -84,35 +81,100 @@ def search_function (path, k_space):
     else:
         for i in path.iterdir():
             
-            on_print = '{:<0} {:<30} {:<10}'.format(space, i.name, 'Folder' if i.is_dir() else 'File')
-            print(on_print)
-            report.write(on_print+ '\n')
-            if i.is_dir():
+            on_print = '{:<0} {:<100} {:<10}'.format(space, i.name, 'Folder' if i.is_dir() else 'File')
+            
+            report.write(on_print + '\n')
+            
+            if i.is_dir() and i != 'images' and i != 'documents' and i != 'audio' and i != 'video' and i != 'archives' :
                 ### All our activities with folders
-
-                # Rename by normalize function
-
 
 
                 path = Path.joinpath(path, i)
                 search_function (path, k_space) # recursive case
                 
-                # Delete empty folders
+                # Delete empty folders or rename it
                 if len(os.listdir(i)) == 0: 
                     Path.rmdir(i)
-                print(i)
                 
-                #new_name = normalize (i)
-                #os.renames(i, new_name)
+                else:
+                    #rename_folder ----> path = i
+                    rename_func (i)
 
 
             else:
-                continue
                 ### All our activities with files + archives
+                #rename_files ----> path = i
+                i = rename_func (i)
+                
+                
+                
+                
+                ### Files GRID
+                
+                # images
+                if i.suffix == '.jpeg' or i.suffix == '.png' or i.suffix == '.jpg' or i.suffix == '.svg':
+                    
+                    #add file in images list
+                    set_files_images.add(os.path.basename(i))
+                    
+                    # add sufix to familiar list
+                    set_fam_extension.add(i.suffix)
+                    process_pictures (i)
+
+                # video
+                elif i.suffix == '.avi' or i.suffix == '.mp4' or i.suffix == '.mov' or i.suffix == '.mkv':
+                    
+                    #add file in video list
+                    set_files_video.add(os.path.basename(i))
+                   
+                    # add sufix to familiar list
+                    set_fam_extension.add(i.suffix)
+                    
+                    process_video (i)
+                
+                # documents
+                elif i.suffix == '.doc' or i.suffix == '.docx' or i.suffix == '.txt' or i.suffix == '.pdf' or i.suffix == '.xlsx' or i.suffix == '.pptx':
+                    
+                    #add file in video list
+                    set_files_documents.add(os.path.basename(i))
+                   
+                    # add sufix to familiar list
+                    set_fam_extension.add(i.suffix)
+                    
+                    process_documents (i)
+                
+
+                # audio
+                elif i.suffix == '.mp3' or i.suffix == '.ogg' or i.suffix == '.wav' or i.suffix == '.amr':
+                    
+                    #add file in video list
+                    set_files_audio.add(os.path.basename(i))
+                  
+                    # add sufix to familiar list
+                    set_fam_extension.add(i.suffix)
+                    
+                    process_audio (i)
+                
+                # archives
+                elif i.suffix == '.zip' or i.suffix == '.gz' or i.suffix == '.tar':
+                    
+                    #add file in video list
+                    set_files_archives.add(os.path.basename(i))
+                  
+                    # add sufix to familiar list
+                    set_fam_extension.add(i.suffix)
+                    
+                    process_archives (i)
+                else:
+                    set_unfam_extension.add(i.suffix)
+
+                continue
+               
+                
 
     k_space -= 1
     
-    return k_space, set_files_images, set_files_documents, set_files_audio, set_files_video, set_files_archives, set_files_other
+    return k_space, set_files_images, set_files_documents, set_files_audio, set_files_video, set_files_archives
 
 def namestr(obj, namespace):
     """ Function return name of veriable in string"""
@@ -128,6 +190,7 @@ def set_prep_for_write (set_x):
         report.write(f'{namestr(set_x, globals())}: \n') 
         for item in set_x:
            report.write(str(item) + '\n') 
+        report.write('\n\n')
     return namestr(set_x, globals())
 
 
@@ -136,50 +199,170 @@ def normalize (name):
     """ Function normalize names files and folders"""
     
     p = name.translate(TRANS)
-    result = re.sub(r'[^a-zA-Z0-9]', '_', p)
+    result = re.sub(r'[^a-zA-Z0-9\.]', '_', p)
     return result
 
-def process_pictures ():
+
+def rename_func (path):
+
+    path_file_item = Path (path)
+    path_folder_item = path_file_item.parent.absolute()
+    old_name = os.path.basename(path_file_item)               
+    new_name = normalize (old_name)
+    new_name_path = Path.joinpath(path_folder_item, new_name)
+
+    if new_name != old_name:
+        os.rename(path_file_item, new_name_path, src_dir_fd=None, dst_dir_fd=None)
+
+    
+    path = new_name_path
+    return path
+
+def process_pictures (path):
     """ Function process pictures category"""
     
-    pass
+    #print ('In Path >>>>', path)
+    # Make dir if it does not exist yet
+    path_base = Path.joinpath(p, 'images')
 
-def process_video ():
+    
+
+    isExist = os.path.exists(path_base) # Check whether the specified path exists or not
+
+    if not isExist:
+        os.makedirs(path_base)  # Create a new directory because it does not exist 
+        #print("Images directory has been created!")
+
+    file_name = os.path.basename(path)
+    
+    dest_pass = Path.joinpath(path_base, file_name)
+    #print ('Dest path>>>>', dest_pass)
+    
+    shutil.move(path, dest_pass)
+    
+    
+
+def process_video (path):
     """ Function process video category"""
     
-    pass
+    
+    # Make dir if it does not exist yet
+    path_base = Path.joinpath(p, 'video')
+    
 
-def process_documents ():
+    isExist = os.path.exists(path_base) # Check whether the specified path exists or not
+
+    if not isExist:
+        os.makedirs(path_base)  # Create a new directory because it does not exist 
+        #print("Video directory has been created!")
+
+    file_name = os.path.basename(path)
+    
+    dest_pass = Path.joinpath(path_base, file_name)
+    #print ('Dest path>>>>', dest_pass)
+    
+    shutil.move(path, dest_pass)
+
+def process_documents (path):
     """ Function process documents category"""
     
-    pass
+    # Make dir if it does not exist yet
+    path_base = Path.joinpath(p, 'documents')
+    
 
-def process_music ():
+    isExist = os.path.exists(path_base) # Check whether the specified path exists or not
+
+    if not isExist:
+        os.makedirs(path_base)  # Create a new directory because it does not exist 
+        #print("Documents directory has been created!")
+
+    file_name = os.path.basename(path)
+    
+    dest_pass = Path.joinpath(path_base, file_name)
+    #print ('Dest path>>>>', dest_pass)
+    
+    shutil.move(path, dest_pass)
+
+def process_audio (path):
     """ Function process music category"""
     
-    pass
+    # Make dir if it does not exist yet
+    path_base = Path.joinpath(p, 'audio')
+    
 
-def process_archives ():
+    isExist = os.path.exists(path_base) # Check whether the specified path exists or not
+
+    if not isExist:
+        os.makedirs(path_base)  # Create a new directory because it does not exist 
+        #print("Audio directory has been created!")
+
+    file_name = os.path.basename(path)
+    
+    dest_pass = Path.joinpath(path_base, file_name)
+    #print ('Dest path>>>>', dest_pass)
+    
+    shutil.move(path, dest_pass)
+
+def process_archives (path):
     """ Function process archives category"""
     
-    pass
-
-def process_others ():
-    """ Function process others category"""
+    # Make dir if it does not exist yet
+    path_base = Path.joinpath(p, 'archives')
     
-    pass
+    isExist = os.path.exists(path_base) # Check whether the specified path exists or not
+
+    if not isExist:
+        os.makedirs(path_base)  # Create a new directory because it does not exist 
+        #print("Archives directory has been created!")
+
+    file_name = os.path.basename(path)
+    
+    dest_pass = Path.joinpath(path_base, file_name)
+    #print ('Dest path>>>>', dest_pass)
+    
+    shutil.move(path, dest_pass)
+    shutil.unpack_archive(dest_pass, path_base)
+    os.remove(dest_pass)
+
 
 #MAIN_BODY########################################
-print(f'Target folder is: {p}.')
+print('LOG:')
+#print(f'Target folder is: {p}.')
+
+
+
+
 
 with open('report.txt', 'w') as report:
+    if __name__ == '__main__':
+        if sys.argv[1]:
+            p = Path(sys.argv[1])
+            print(f'Target folder is: {p}.')
+    
+            report.write('File structure processing:' + '\n\n')
+            search_function (p, 0)
+            report.write('\n\n\n')
+
+
+
+""" with open('report.txt', 'w') as report:
+    report.write('File structure processing:' + '\n\n')
     search_function (p, 0)
-    report.write('\n\n\n')
+    report.write('\n\n\n') """
+
+print (f'You could read report file (report.txt) in your current directory')
+set_prep_for_write (set_files_images)
+set_prep_for_write (set_files_documents)
+set_prep_for_write (set_files_audio)
+set_prep_for_write (set_files_video)
+set_prep_for_write (set_files_archives)
+set_prep_for_write (set_fam_extension)
+set_prep_for_write (set_unfam_extension)
 
 
-print(set_prep_for_write (set_files_images))
-print(normalize("Сергій;%:?%;?%;"))
 
+
+# python Module_6_HW_Korobchenko.py D:\TEST\Garbage
     
 
     
